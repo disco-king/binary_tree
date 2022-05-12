@@ -5,16 +5,47 @@ int main()
 	Tree t;
 
 	t.addValue(3);
+	t.addValue(1);
+	t.addValue(0);
+	t.addValue(2);
+	t.addValue(7);
+	t.addValue(10);
+	t.addValue(9);
+	t.addValue(500);
 	t.addValue(5);
+	t.addValue(6);
+	t.addValue(-1);
+	t.addValue(4);
 
-	if(t.findValue(3))
-		std::cout << "3 found\n";
-	else
-		std::cout << "3 not found\n";
+	// t.printTree();
+	// std::cout << "height " << t.getHeight() << '\n';
 
-	if(t.findValue(5))
-		std::cout << "5 found\n";
-	else
-		std::cout << "5 not found\n";
+	// Tree::Node *n;
+	// n = t.getMin();
+	// std::cout << "min " << n->val << '\n';
+	// n = t.getMax();
+	// std::cout << "max " << n->val << '\n';
+	// n = t.successor(t.getRoot());
+	// std::cout << "next to root " << n->val << '\n';
+	// n = t.predecessor(t.getRoot());
+	// std::cout << "prev to root " << n->val << '\n';
+	
+	// n = t.findValue(5);
+	// if(n)
+	// 	std::cout << "5 found\n";
 
+
+	t.removeValue(2);
+	t.removeValue(0);
+	std::cout << "\nremoved 2 and 0\n";
+
+	t.graphicPrint();
+
+	t.addValue(2);
+	t.addValue(0);
+	std::cout << "\nadded 2 and 0\n";
+	t.removeValue(7);
+	std::cout << "removed 7\n";
+
+	t.graphicPrint();
 }
