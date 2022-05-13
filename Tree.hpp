@@ -13,6 +13,7 @@ public:
 		Node *right;
 		int val;
 		bool black;
+
 		Node(int val = 0): p(0), left(0),
 		right(0), val(val), black(true) {}
 	};
@@ -27,10 +28,17 @@ private:
 	Node *treeMinimum(Node *head);
 	Node *treeMaximum(Node *head);
 	void transplant(Node *prev_n, Node * new_n);
+	void updateHeight();
+	void clearNodes(Node *head);
 
 public:
 	Tree() : root(0), height(0){}
+	~Tree()
+	{
+		clearNodes(root);
+	}
 
+	int maxHeight(Node *head, int depth);
 	void addValue(int val);
 	void removeValue(int val);
 	Node *findValue(int val);
@@ -38,12 +46,74 @@ public:
 	void graphicPrint();
 	Node *successor(Node *x);
 	Node *predecessor(Node *x);
+	void rotateLeft(Node *x);
+	void rotateRight(Node *x);
 
 	int getHeight(){ return height; }
 	Node *getRoot(){ return root; }
 	Node *getMin(){ return treeMinimum(root); }
 	Node *getMax(){ return treeMaximum(root); }
+	void checkPars(Node *head);
 };
+
+void Tree::rotateLeft(Node *x)
+{
+	Node *y = x->right;
+	x->right = y->left;
+	if(y->left)
+		y->left->p = x;
+
+	y->p = x->p;
+	if(!y->p)
+		root = y;
+	else if(x == x->p->left)
+		y->p->left = y;
+	else
+		y->p->right = y;
+	x->p = y;
+	y->left = x;
+	updateHeight();
+}
+
+void Tree::rotateRight(Node *x)
+{
+	Node *y = x->left;
+	x->left = y->right;
+	if(y->right)
+		y->right->p = x;
+
+	y->p = x->p;
+	if(!y->p)
+		root = y;
+	else if(x == x->p->left)
+		y->p->left = y;
+	else
+		y->p->right = y;
+	x->p = y;
+	y->right = x;
+	updateHeight();
+}
+
+void Tree::updateHeight()
+{
+	int h = maxHeight(root, 0);
+	if(h != height)
+		height = h;
+}
+
+int Tree::maxHeight(Node *head, int depth)
+{
+	if(!head)
+		return depth - 1;
+	if(!head->right)
+		return maxHeight(head->left, depth + 1);
+	if(!head->left)
+		return maxHeight(head->right, depth + 1);
+
+	int left = maxHeight(head->left, depth + 1);
+	int right = maxHeight(head->right, depth + 1);
+	return (left > right) ? left : right;
+}
 
 void Tree::addNode(Node *n, int val, int depth)
 {
@@ -136,6 +206,7 @@ void Tree::removeValue(int val)
 	}
 
 	delete n;
+	updateHeight();
 }
 
 void Tree::printNodes(Node *head)
@@ -246,4 +317,29 @@ Tree::Node *Tree::predecessor(Node *x)
 		y = y->p;
 	}
 	return y;
+}
+
+void Tree::checkPars(Node *head)
+{
+	if(!head)
+		return;
+	std::cout << "path to root for " << head->val << ": ";
+	head = head->p;
+	while(head)
+	{
+		std::cout << head->val << ' ';
+		head = head->p;
+	}
+	std::cout << "\nroot reached\n";
+}
+
+void Tree::clearNodes(Node *head)
+{
+	if(!head)
+		return;
+	if(head->left)
+		clearNodes(head->left);
+	if(head->right)
+		clearNodes(head->right);
+	delete head;
 }
