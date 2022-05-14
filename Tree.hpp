@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+#define RED true
+#define BLACK false
 
 class Tree
 {
@@ -12,17 +14,19 @@ public:
 		Node *left;
 		Node *right;
 		int val;
-		bool black;
+		bool color;
 
 		Node(int val = 0): p(0), left(0),
-		right(0), val(val), black(true) {}
+		right(0), val(val), color(RED) {}
 	};
 
 private:
 	Node *root;
 	int height;
 
-	void addNode(Node *head, int val, int depth);
+	Node *addNode(Node *head, int val, int depth);
+	void insertNode(int val);
+	void fixup(Node *n);
 	void printNodes(Node *head);
 	void printLevel(Node *head, int level, int depth);
 	Node *treeMinimum(Node *head);
@@ -55,6 +59,59 @@ public:
 	Node *getMax(){ return treeMaximum(root); }
 	void checkPars(Node *head);
 };
+
+void Tree::insertNode(int val)
+{
+	Node *n = addNode(root, val, 0);
+	fixup(n);
+}
+
+void Tree::fixup(Node *x)
+{
+	Node *y;
+	while(x->p && x->p->color == RED)
+	{
+		if(x->p == x->p->p->left)
+		{
+			y = x->p->p->right;
+			if(y && y->color == RED)
+			{
+				y->color = BLACK;
+				x->p->color = BLACK;
+				y->p->color = RED;
+				x = x->p->p;
+			}
+			else
+			{
+				if(x == x->p->right)
+					rotateLeft(x = x->p);
+				x->p->color = BLACK;
+				x->p->p->color = RED;
+				rotateRight(x->p->p);
+			}
+		}
+		else
+		{
+			y = x->p->p->left;
+			if(y && y->color == RED)
+			{
+				y->color = BLACK;
+				x->p->color = BLACK;
+				y->p->color = RED;
+				x = x->p->p;
+			}
+			else
+			{
+				if(x == x->p->left)
+					rotateRight(x = x->p);
+				x->p->color = BLACK;
+				x->p->p->color = RED;
+				rotateLeft(x->p->p);
+			}
+		}
+	}
+	root->color = BLACK;
+}
 
 void Tree::rotateLeft(Node *x)
 {
@@ -115,30 +172,30 @@ int Tree::maxHeight(Node *head, int depth)
 	return (left > right) ? left : right;
 }
 
-void Tree::addNode(Node *n, int val, int depth)
+Tree::Node *Tree::addNode(Node *n, int val, int depth)
 {
 	if(val < n->val)
 	{
 		if(!n->left)
 		{
+			height = (++depth > height) ? depth : height;
 			n->left = new Node(val);
 			n->left->p = n;
+			return n->left;
 		}
-		else
-			return addNode(n->left, val, depth + 1);
+		return addNode(n->left, val, depth + 1);
 	}
 	else
 	{
 		if(!n->right)
 		{
+			height = (++depth > height) ? depth : height;
 			n->right = new Node(val);
 			n->right->p = n;
+			return n->right;
 		}
-		else
-			return addNode(n->right, val, depth + 1);
+		return addNode(n->right, val, depth + 1);
 	}
-	if(depth > height)
-		height = depth;
 }
 
 void Tree::addValue(int val)
@@ -146,9 +203,12 @@ void Tree::addValue(int val)
 	if(val > 999 || val < -99)
 		return;
 	if(!root)
+	{
 		root = new Node(val);
+		root->color = BLACK;
+	}
 	else
-		addNode(root, val, 1);
+		insertNode(val);
 }
 
 Tree::Node *Tree::findValue(int val)
