@@ -333,13 +333,13 @@ void Tree::printLevel(Tree::Node *head, int level, int depth)
 		return;
 	}
 	int pad = pow(2, height - depth + 1) - 1;
-	int num_width = pad + 2 - (head ? width(head->val) : 1);
+	int num_width = pad + 1 - (head ? width(head->val) : 1);
 	for (size_t i = 0; i < num_width; i++)
 		std::cout << ' ';
 	if(head)
-		std::cout << head->val;
+		std::cout << head->val << (head->color ? 'r' : 'b');
 	else
-		std::cout << ' ';
+		std::cout << ' ' << ' ';
 	for (size_t i = 0; i < pad; i++)
 		std::cout << ' ';
 }
