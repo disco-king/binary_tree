@@ -21,7 +21,7 @@ int main()
 	// {
 	// 	t.addValue(i);
 	// }
-	
+	std::cout << "tree created\n";
 
 	t.graphicPrint();
 	std::cout << "height " << t.getHeight() << '\n';

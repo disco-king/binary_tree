@@ -31,7 +31,7 @@ private:
 
 	Node *addNode(Node *head, int val, int depth);
 	void insertFixup(Node *n);
-	void deleteFixup(Node *n, bool side);
+	void deleteFixup(Node *n);
 	void printNodes(Node *head);
 	void printLevel(Node *head, int level, int depth);
 	Node *treeMinimum(Node *head);
@@ -39,7 +39,7 @@ private:
 	void transplant(Node *prev_n, Node * new_n);
 	void updateHeight();
 	void clearNodes(Node *head);
-	Node *getPtr(Node *par, bool side);
+	// Node *getPtr(Node *par, bool side);
 
 public:
 	Tree() : root(0), height(0), nil(new Node()){
@@ -70,12 +70,12 @@ public:
 void Tree::insertFixup(Node *x)
 {
 	Node *y;
-	while(x->p && x->p->color == RED)
+	while(x->p->color == RED)
 	{
 		if(x->p == x->p->p->left)
 		{
 			y = x->p->p->right;
-			if(y && y->color == RED)
+			if(y->color == RED)
 			{
 				y->color = BLACK;
 				x->p->color = BLACK;
@@ -94,7 +94,7 @@ void Tree::insertFixup(Node *x)
 		else
 		{
 			y = x->p->p->left;
-			if(y && y->color == RED)
+			if(y->color == RED)
 			{
 				y->color = BLACK;
 				x->p->color = BLACK;
@@ -118,11 +118,11 @@ void Tree::rotateLeft(Node *x)
 {
 	Node *y = x->right;
 	x->right = y->left;
-	if(y->left)
+	if(y->left != nil)
 		y->left->p = x;
 
 	y->p = x->p;
-	if(!y->p)
+	if(y->p == nil)
 		root = y;
 	else if(x == x->p->left)
 		y->p->left = y;
@@ -137,11 +137,11 @@ void Tree::rotateRight(Node *x)
 {
 	Node *y = x->left;
 	x->left = y->right;
-	if(y->right)
+	if(y->right != nil)
 		y->right->p = x;
 
 	y->p = x->p;
-	if(!y->p)
+	if(y->p == nil)
 		root = y;
 	else if(x == x->p->left)
 		y->p->left = y;
@@ -161,11 +161,11 @@ void Tree::updateHeight()
 
 int Tree::maxHeight(Node *head, int depth)
 {
-	if(!head)
+	if(head == nil)
 		return depth - 1;
-	if(!head->right)
+	if(head->right == nil)
 		return maxHeight(head->left, depth + 1);
-	if(!head->left)
+	if(head->left == nil)
 		return maxHeight(head->right, depth + 1);
 
 	int left = maxHeight(head->left, depth + 1);
@@ -177,10 +177,10 @@ Tree::Node *Tree::addNode(Node *n, int val, int depth)
 {
 	if(val < n->val)
 	{
-		if(!n->left)
+		if(n->left == nil)
 		{
 			height = (++depth > height) ? depth : height;
-			n->left = new Node(val);
+			n->left = new Node(val, nil);
 			n->left->p = n;
 			return n->left;
 		}
@@ -188,10 +188,10 @@ Tree::Node *Tree::addNode(Node *n, int val, int depth)
 	}
 	else
 	{
-		if(!n->right)
+		if(n->right == nil)
 		{
 			height = (++depth > height) ? depth : height;
-			n->right = new Node(val);
+			n->right = new Node(val, nil);
 			n->right->p = n;
 			return n->right;
 		}
@@ -205,7 +205,7 @@ void Tree::addValue(int val)
 		return;
 	if(!root)
 	{
-		root = new Node(val);
+		root = new Node(val, nil);
 		root->color = BLACK;
 	}
 	else
@@ -214,11 +214,11 @@ void Tree::addValue(int val)
 
 Tree::Node *Tree::findValue(int val)
 {
-	if(!root)
+	if(root == nil)
 		return root;
 
 	Node *n = root;
-	while (n)
+	while (n != nil)
 	{
 		if(val == n->val)
 			break;
@@ -232,41 +232,41 @@ Tree::Node *Tree::findValue(int val)
 
 void Tree::transplant(Node *prev_n, Node * new_n)
 {
-	if(!prev_n->p)
+	if(prev_n->p == nil)
 		root = new_n;
 	else if(prev_n == prev_n->p->left)
 		prev_n->p->left = new_n;
 	else
 		prev_n->p->right = new_n;
-	if(new_n)
-		new_n->p = prev_n->p;
+	new_n->p = prev_n->p;
 }
 
 void Tree::removeValue(int val)
 {
 	Node *n = findValue(val);
-	if(!n)
+	if(n == nil)
 		return;
 	Node *repl;
-	bool side;
 	bool orig_color = n->color;
 
-	if(!n->right)
+	if(n->right == nil)
 	{
-		repl = getPtr(n, side = LEFT);
+		repl = n->left;
 		transplant(n, n->left);
 	}
-	else if(!n->left)
+	else if(n->left == nil)
 	{
-		repl = getPtr(n, side = RIGHT);
+		repl = n->right;
 		transplant(n, n->right);
 	}
 	else
 	{
 		Node *subs = treeMinimum(n->right);
 		orig_color = subs->color;
-		repl = getPtr(subs, side = RIGHT);
-		if(subs->p != n)
+		repl = subs->right;
+		if(subs->p == n)
+			repl->p = subs;
+		else
 		{
 			transplant(subs, subs->right);
 			subs->right = n->right;
@@ -280,16 +280,16 @@ void Tree::removeValue(int val)
 
 	delete n;
 	if(orig_color == BLACK)
-		deleteFixup(repl, side);
+		deleteFixup(repl);
 	updateHeight();
 }
 
-void Tree::deleteFixup(Node *n, bool side)
+void Tree::deleteFixup(Node *n)
 {
 	Node *s;
 	while(n != root && n->color != BLACK)
 	{
-		if(side == LEFT)
+		if(n = n->p->left)
 		{
 			s = n->p->right;
 			if(s->color == RED)
@@ -299,15 +299,14 @@ void Tree::deleteFixup(Node *n, bool side)
 				rotateLeft(s->p);
 				s = n->p->right;
 			}
-			if((!s->left || s->left->color == BLACK) 
-				&& (!s->right || s->right->color == BLACK))
+			if(s->left->color == BLACK && s->right->color == BLACK)
 			{
 				s->color = RED;
 				n = n->p;
 			}
 			else
 			{
-				if(!s->right || s->right->color == BLACK)
+				if(s->right->color == BLACK)
 				{
 					s->left->color = BLACK;
 					s->color = RED;
@@ -332,10 +331,10 @@ void Tree::deleteFixup(Node *n, bool side)
 
 void Tree::printNodes(Node *head)
 {
-	if(head->left)
+	if(head->left != nil)
 		printNodes(head->left);
 	std::cout << head->val << ' ';
-	if(head->right)
+	if(head->right != nil)
 		printNodes(head->right);
 }
 
@@ -347,7 +346,7 @@ void Tree::printTree()
 
 Tree::Node *Tree::treeMinimum(Node *head)
 {
-	if(!head->left)
+	if(head->left == nil)
 		return head;
 	
 	return treeMinimum(head->left);
@@ -355,7 +354,7 @@ Tree::Node *Tree::treeMinimum(Node *head)
 
 Tree::Node *Tree::treeMaximum(Node *head)
 {
-	if(!head->right)
+	if(head->right == nil)
 		return head;
 	
 	return treeMaximum(head->right);
@@ -383,11 +382,11 @@ void Tree::printLevel(Tree::Node *head, int level, int depth)
 {
 	if(depth != level)
 	{
-		if(head->left)
+		if(head->left != nil)
 			printLevel(head->left, level, depth + 1);
 		else
 			printLevel(0, depth + 1, depth + 1);
-		if(head->right)
+		if(head->right != nil)
 			printLevel(head->right, level, depth + 1);
 		else
 			printLevel(0, depth + 1, depth + 1);
@@ -416,10 +415,10 @@ void Tree::graphicPrint()
 
 Tree::Node *Tree::successor(Node *x)
 {
-	if(x->right)
+	if(x->right != nil)
 		return treeMinimum(x->right);
 	Node *y = x;
-	while(y && x != y->left)
+	while(y != nil && x != y->left)
 	{
 		x = y;
 		y = y->p;
@@ -429,10 +428,10 @@ Tree::Node *Tree::successor(Node *x)
 
 Tree::Node *Tree::predecessor(Node *x)
 {
-	if(x->left)
+	if(x->left != nil)
 		return treeMaximum(x->left);
 	Node *y = x;
-	while(y && x != y->right)
+	while(y != nil && x != y->right)
 	{
 		x = y;
 		y = y->p;
@@ -442,11 +441,11 @@ Tree::Node *Tree::predecessor(Node *x)
 
 void Tree::checkPars(Node *head)
 {
-	if(!head)
+	if(head == nil)
 		return;
 	std::cout << "path to root for " << head->val << ": ";
 	head = head->p;
-	while(head)
+	while(head != nil)
 	{
 		std::cout << head->val << ' ';
 		head = head->p;
@@ -456,26 +455,26 @@ void Tree::checkPars(Node *head)
 
 void Tree::clearNodes(Node *head)
 {
-	if(!head)
+	if(head == nil)
 		return;
-	if(head->left)
+	if(head->left != nil)
 		clearNodes(head->left);
-	if(head->right)
+	if(head->right != nil)
 		clearNodes(head->right);
 	delete head;
 }
 
-Tree::Node *Tree::getPtr(Node *par, bool side)
-{
-	Node *ret;
-	if(side == LEFT)
-		ret = par->left;
-	else
-		ret = par->right;
-	if(ret == 0)
-	{
-		nil->p = &(*par);
-		ret = nil;
-	}
-	return ret;
-}
+// Tree::Node *Tree::getPtr(Node *par, bool side)
+// {
+// 	Node *ret;
+// 	if(side == LEFT)
+// 		ret = par->left;
+// 	else
+// 		ret = par->right;
+// 	if(ret == 0)
+// 	{
+// 		nil->p = &(*par);
+// 		ret = nil;
+// 	}
+// 	return ret;
+// }
