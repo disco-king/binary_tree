@@ -287,9 +287,9 @@ void Tree::removeValue(int val)
 void Tree::deleteFixup(Node *n)
 {
 	Node *s;
-	while(n != root && n->color != BLACK)
+	while(n != root && n->color == BLACK)
 	{
-		if(n = n->p->left)
+		if(n == n->p->left)
 		{
 			s = n->p->right;
 			if(s->color == RED)
@@ -322,7 +322,34 @@ void Tree::deleteFixup(Node *n)
 		}
 		else
 		{
-
+			s = n->p->left;
+			if(s->color == RED)
+			{
+				s->color = BLACK;
+				s->p->color = RED;
+				rotateRight(s->p);
+				s = n->p->left;
+			}
+			if(s->left->color == BLACK && s->right->color == BLACK)
+			{
+				s->color = RED;
+				n = n->p;
+			}
+			else
+			{
+				if(s->left->color == BLACK)
+				{
+					s->right->color = BLACK;
+					s->color = RED;
+					rotateLeft(s);
+					s = n->p->left;
+				}
+				s->color = n->p->color;
+				n->p->color = BLACK;
+				s->left->color = BLACK;
+				rotateRight(n->p);
+				n = root;
+			}
 		}
 	}
 	n->color = BLACK;

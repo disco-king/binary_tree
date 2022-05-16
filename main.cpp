@@ -1,5 +1,6 @@
 #include "Tree.hpp"
-#include <cstdlib>
+#include <stdlib.h>
+#include <unistd.h>
 
 int main()
 {
@@ -17,11 +18,17 @@ int main()
 	t.addValue(-2);
 	t.addValue(-3);
 
-	// for (size_t i = 0; i < 16; i++)
-	// {
-	// 	t.addValue(i);
-	// }
 	std::cout << "tree created\n";
+
+	t.graphicPrint();
+	std::cout << "height " << t.getHeight() << '\n';
+	
+	std::cout << "removing -1\n";
+	t.removeValue(-1);
+	std::cout << "removing 3\n";
+	t.removeValue(3);
+	std::cout << "removing 3\n";
+	t.removeValue(10);
 
 	t.graphicPrint();
 	std::cout << "height " << t.getHeight() << '\n';
@@ -30,4 +37,22 @@ int main()
 	t.checkPars(n);
 	n = t.getMax();
 	t.checkPars(n);
+
+	
+	// for (size_t i = 1; i < 17; i++)
+	// {
+	// 	t.addValue(i);
+	// 	t.graphicPrint();
+	// 	sleep(2);
+	// 	if(system("CLS"))
+	// 		system("clear");
+	// }
+	// for (size_t i = 16; i > 1; i--)
+	// {
+	// 	t.removeValue(i);
+	// 	t.graphicPrint();
+	// 	sleep(2);
+	// 	if(system("CLS"))
+	// 		system("clear");
+	// }
 }
