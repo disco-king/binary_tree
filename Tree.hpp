@@ -25,8 +25,8 @@ private:
 	int height;
 
 	Node *addNode(Node *head, int val, int depth);
-	void insertNode(int val);
-	void fixup(Node *n);
+	void insertFixup(Node *n);
+	void deleteFixup(Node *n);
 	void printNodes(Node *head);
 	void printLevel(Node *head, int level, int depth);
 	Node *treeMinimum(Node *head);
@@ -60,13 +60,7 @@ public:
 	void checkPars(Node *head);
 };
 
-void Tree::insertNode(int val)
-{
-	Node *n = addNode(root, val, 0);
-	fixup(n);
-}
-
-void Tree::fixup(Node *x)
+void Tree::insertFixup(Node *x)
 {
 	Node *y;
 	while(x->p && x->p->color == RED)
@@ -208,7 +202,7 @@ void Tree::addValue(int val)
 		root->color = BLACK;
 	}
 	else
-		insertNode(val);
+		insertFixup(addNode(root, val, 0));
 }
 
 Tree::Node *Tree::findValue(int val)
@@ -241,33 +235,53 @@ void Tree::transplant(Node *prev_n, Node * new_n)
 		new_n->p = prev_n->p;
 }
 
-void Tree::removeValue(int val)
-{
-	Node *n = findValue(val);
-	if(!n)
-		return;
+// void Tree::removeValue(int val)
+// {
+// 	Node *n = findValue(val);
+// 	if(!n)
+// 		return;
+// 	Node *repl;
+// 	bool orig_color = n->color;
 
-	if(!n->right)
-		transplant(n, n->left);
-	else if(!n->left)
-		transplant(n, n->right);
-	else
-	{
-		Node *subs = treeMinimum(n->right);
-		if(subs->p != n)
-		{
-			transplant(subs, subs->right);
-			subs->right = n->right;
-			subs->right->p = subs;
-		}
-		transplant(n, subs);
-		subs->left = n->left;
-		subs->left->p = subs;
-	}
+// 	if(!n->right)
+// 	{
+// 		repl = n->left;
+// 		transplant(n, n->left);
+// 	}
+// 	else if(!n->left)
+// 	{
+// 		repl = n->right;
+// 		transplant(n, n->right);
+// 	}
+// 	else
+// 	{
+// 		Node *subs = treeMinimum(n->right);
+// 		repl = subs->right;
+// 		if(subs->p == n && repl)
+// 			repl->p = subs;
+// 		else
+// 		{
+// 			transplant(subs, subs->right);
+// 			subs->right = n->right;
+// 			subs->right->p = subs;
+// 		}
+// 		transplant(n, subs);
+// 		subs->left = n->left;
+// 		subs->left->p = subs;
+// 		subs->color = n->color;
+// 	}
 
-	delete n;
-	updateHeight();
-}
+// 	delete n;
+// 	if(orig_color == BLACK)
+// 		deleteFixup(repl);
+// 	updateHeight();
+// }
+
+// void Tree::deleteFixup(Node *n)
+// {
+
+// }
+
 
 void Tree::printNodes(Node *head)
 {
