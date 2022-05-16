@@ -5,9 +5,13 @@
 
 #define RED true
 #define BLACK false
+#define LEFT true
+#define RIGHT false
 
 class Tree
 {
+
+
 public:
 	struct Node{
 		Node *p;
@@ -16,17 +20,18 @@ public:
 		int val;
 		bool color;
 
-		Node(int val = 0): p(0), left(0),
-		right(0), val(val), color(RED) {}
+		Node(int val = 0, Node *ptr = 0): p(ptr), left(ptr),
+		right(ptr), val(val), color(RED) {}
 	};
 
 private:
 	Node *root;
+	Node * const nil;
 	int height;
 
 	Node *addNode(Node *head, int val, int depth);
 	void insertFixup(Node *n);
-	void deleteFixup(Node *n);
+	void deleteFixup(Node *n, bool side);
 	void printNodes(Node *head);
 	void printLevel(Node *head, int level, int depth);
 	Node *treeMinimum(Node *head);
@@ -34,11 +39,13 @@ private:
 	void transplant(Node *prev_n, Node * new_n);
 	void updateHeight();
 	void clearNodes(Node *head);
+	Node *getPtr(Node *par, bool side);
 
 public:
-	Tree() : root(0), height(0){}
-	~Tree()
-	{
+	Tree() : root(0), height(0), nil(new Node()){
+		nil->color = BLACK;
+	}
+	~Tree(){
 		clearNodes(root);
 	}
 
@@ -235,52 +242,92 @@ void Tree::transplant(Node *prev_n, Node * new_n)
 		new_n->p = prev_n->p;
 }
 
-// void Tree::removeValue(int val)
-// {
-// 	Node *n = findValue(val);
-// 	if(!n)
-// 		return;
-// 	Node *repl;
-// 	bool orig_color = n->color;
+void Tree::removeValue(int val)
+{
+	Node *n = findValue(val);
+	if(!n)
+		return;
+	Node *repl;
+	bool side;
+	bool orig_color = n->color;
 
-// 	if(!n->right)
-// 	{
-// 		repl = n->left;
-// 		transplant(n, n->left);
-// 	}
-// 	else if(!n->left)
-// 	{
-// 		repl = n->right;
-// 		transplant(n, n->right);
-// 	}
-// 	else
-// 	{
-// 		Node *subs = treeMinimum(n->right);
-// 		repl = subs->right;
-// 		if(subs->p == n && repl)
-// 			repl->p = subs;
-// 		else
-// 		{
-// 			transplant(subs, subs->right);
-// 			subs->right = n->right;
-// 			subs->right->p = subs;
-// 		}
-// 		transplant(n, subs);
-// 		subs->left = n->left;
-// 		subs->left->p = subs;
-// 		subs->color = n->color;
-// 	}
+	if(!n->right)
+	{
+		repl = getPtr(n, side = LEFT);
+		transplant(n, n->left);
+	}
+	else if(!n->left)
+	{
+		repl = getPtr(n, side = RIGHT);
+		transplant(n, n->right);
+	}
+	else
+	{
+		Node *subs = treeMinimum(n->right);
+		orig_color = subs->color;
+		repl = getPtr(subs, side = RIGHT);
+		if(subs->p != n)
+		{
+			transplant(subs, subs->right);
+			subs->right = n->right;
+			subs->right->p = subs;
+		}
+		transplant(n, subs);
+		subs->left = n->left;
+		subs->left->p = subs;
+		subs->color = n->color;
+	}
 
-// 	delete n;
-// 	if(orig_color == BLACK)
-// 		deleteFixup(repl);
-// 	updateHeight();
-// }
+	delete n;
+	if(orig_color == BLACK)
+		deleteFixup(repl, side);
+	updateHeight();
+}
 
-// void Tree::deleteFixup(Node *n)
-// {
+void Tree::deleteFixup(Node *n, bool side)
+{
+	Node *s;
+	while(n != root && n->color != BLACK)
+	{
+		if(side == LEFT)
+		{
+			s = n->p->right;
+			if(s->color == RED)
+			{
+				s->color = BLACK;
+				s->p->color = RED;
+				rotateLeft(s->p);
+				s = n->p->right;
+			}
+			if((!s->left || s->left->color == BLACK) 
+				&& (!s->right || s->right->color == BLACK))
+			{
+				s->color = RED;
+				n = n->p;
+			}
+			else
+			{
+				if(!s->right || s->right->color == BLACK)
+				{
+					s->left->color = BLACK;
+					s->color = RED;
+					rotateRight(s);
+					s = n->p->right;
+				}
+				s->color = n->p->color;
+				n->p->color = BLACK;
+				s->right->color = BLACK;
+				rotateLeft(n->p);
+				n = root;
+			}
+		}
+		else
+		{
 
-// }
+		}
+	}
+	n->color = BLACK;
+}
 
 
 void Tree::printNodes(Node *head)
@@ -416,4 +463,19 @@ void Tree::clearNodes(Node *head)
 	if(head->right)
 		clearNodes(head->right);
 	delete head;
+}
+
+Tree::Node *Tree::getPtr(Node *par, bool side)
+{
+	Node *ret;
+	if(side == LEFT)
+		ret = par->left;
+	else
+		ret = par->right;
+	if(ret == 0)
+	{
+		nil->p = &(*par);
+		ret = nil;
+	}
+	return ret;
 }
